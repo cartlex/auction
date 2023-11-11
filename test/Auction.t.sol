@@ -12,7 +12,7 @@ contract AuctionTest is Test {
     address public bob;
     address public owner;
 
-    function setUp() external {
+    function setUp() public virtual {
 
         alice = makeAddr("Alice");
         bob = makeAddr("Bob");
@@ -22,21 +22,28 @@ contract AuctionTest is Test {
         vm.label(bob, "bob");
         vm.label(owner, "owner");
     }
+}
+
+contract DeployAuctionTest is AuctionTest {
+
+    function setUp() public override {
+        super.setUp();
+    }
 
     function test_DeployInvalidAuctionDuration() external {
-        uint256 auctionStartTime = block.timestamp;
-        uint256 auctionDuration = 1 days - 1;
+            uint256 auctionStartTime = block.timestamp;
+            uint256 auctionDuration = 1 days - 1;
 
-        vm.startPrank(owner);
+            vm.startPrank(owner);
 
-        vm.expectRevert(IAuction.InvalidAuctionDuration.selector);
-        auction = new Auction(
-            auctionStartTime,
-            auctionDuration
-        );
+            vm.expectRevert(IAuction.InvalidAuctionDuration.selector);
+            auction = new Auction(
+                auctionStartTime,
+                auctionDuration
+            );
 
-        vm.stopPrank();
-    }
+            vm.stopPrank();
+        }
 
     function test_DeployInvalidStartTime() external {
         vm.warp(block.timestamp + 10_000);
