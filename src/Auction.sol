@@ -3,24 +3,9 @@ pragma solidity 0.8.20;
 
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IAuction} from "./interfaces/IAuction.sol";
 
-contract Auction is Ownable2Step {
-    error OperationNotAllowed();
-    error InvalidTimeToBid();
-    error InvalidStartTime();
-    error InvalidAuctionDuration();
-    error InvalidBidAmount();
-    error PrizeAlreadyClaimed();
-    error AuctionStillActive();
-    error AuctionEnded();
-    error NotAllowedToClaim();
-    error OperationFailed();
-    error InvalidBidder();
-
-    event BidWithdrawn(uint256 indexed bid, address indexed receiver);
-    event PrizeClaimed(uint256 indexed amount, address indexed winner);
-    event BidCancelled(uint256 indexed bid, address indexed receiver);
-
+contract Auction is Ownable2Step, IAuction {
     uint256 private constant AUCTION_MIN_DURATION = 1 days;
     uint256 private constant PRIZE_CLAIMED = 1;
     uint256 private constant PRIZE_IS_NOT_CLAIMED = 2;
@@ -30,16 +15,10 @@ contract Auction is Ownable2Step {
 
     uint256 currentMaximumBidAmount;
 
-    struct BidInfo {
-        uint256 bid;
-        address bidder;
-        bool status;
-    }
-
     mapping(address bidder => BidInfo) public bids;
     uint256 claimed = PRIZE_IS_NOT_CLAIMED;
 
-    constructor(uint256 auctionStartTime, uint256 auctionDuration) Ownable(msg.sender) {
+    constructor(uint256 auctionStartTime, uint256 auctionDuration) Ownable(msg.sender) payable {
         if (auctionDuration < AUCTION_MIN_DURATION) revert InvalidAuctionDuration();
         if (auctionStartTime < block.timestamp) revert InvalidStartTime();
         AUCTION_START_TIME = auctionStartTime;
