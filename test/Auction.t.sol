@@ -76,4 +76,19 @@ contract DeployAuctionTest is AuctionTest {
         
         vm.stopPrank();
     }
+
+    function test_DeployOwnerCantRenounceOwnership() external {
+        vm.startPrank(owner);
+
+        uint256 auctionDuration = 1 days;
+        
+        auction = new Auction(
+            block.timestamp,
+            auctionDuration
+        );
+
+        vm.expectRevert(IAuction.OperationNotAllowed.selector);
+        auction.renounceOwnership();        
+        vm.stopPrank();
+    }
 }

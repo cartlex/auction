@@ -79,7 +79,7 @@ contract Auction is Ownable2Step, IAuction {
         }
     }
 
-    function renounceOwnership() public override {
+    function renounceOwnership() public pure override {
         revert OperationNotAllowed();
     }
 }
