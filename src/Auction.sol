@@ -7,6 +7,10 @@ import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
 import {ConstantsLib} from "./libraries/ConstantsLib.sol";
 
+/// @title Auction contract
+/// @author cartlex
+/// @custom:contact cartlexeth@gmail.com
+/// @notice An auction where you can do bid and take a chance to win a prize in ETH.
 contract Auction is Ownable2Step, IAuction {
     uint256 private immutable AUCTION_START_TIME;
     uint256 private immutable AUCTION_END_TIME;
@@ -14,6 +18,7 @@ contract Auction is Ownable2Step, IAuction {
     uint256 currentMaximumBidAmount;
 
     mapping(address bidder => BidInfo) public bids;
+    
     uint256 claimed = ConstantsLib.PRIZE_IS_NOT_CLAIMED;
 
     constructor(uint256 auctionStartTime, uint256 auctionDuration) Ownable(msg.sender) payable {
