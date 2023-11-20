@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.21;
+pragma solidity 0.8.20;
 
 import {console2, Test, StdStyle} from "forge-std/Test.sol";
 import {Auction} from "../src/Auction.sol";
 import {IAuction} from "../src/interfaces/IAuction.sol";
+import {ErrorsLib} from "../src/libraries/ErrorsLib.sol";
 
 contract AuctionTest is Test {
     Auction public auction;
@@ -36,7 +37,7 @@ contract DeployAuctionTest is AuctionTest {
 
             vm.startPrank(owner);
 
-            vm.expectRevert(IAuction.InvalidAuctionDuration.selector);
+            vm.expectRevert(ErrorsLib.InvalidAuctionDuration.selector);
             auction = new Auction(
                 auctionStartTime,
                 auctionDuration
@@ -53,7 +54,7 @@ contract DeployAuctionTest is AuctionTest {
 
         vm.startPrank(owner);
 
-        vm.expectRevert(IAuction.InvalidStartTime.selector);
+        vm.expectRevert(ErrorsLib.InvalidStartTime.selector);
         auction = new Auction(
             auctionStartTime,
             auctionDuration
@@ -87,7 +88,7 @@ contract DeployAuctionTest is AuctionTest {
             auctionDuration
         );
 
-        vm.expectRevert(IAuction.OperationNotAllowed.selector);
+        vm.expectRevert(ErrorsLib.OperationNotAllowed.selector);
         auction.renounceOwnership();        
         vm.stopPrank();
     }
