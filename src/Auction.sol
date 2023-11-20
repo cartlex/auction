@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable, Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IAuction} from "./interfaces/IAuction.sol";
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
+import {EventsLib} from "./libraries/EventsLib.sol";
 
 contract Auction is Ownable2Step, IAuction {
     uint256 private constant AUCTION_MIN_DURATION = 1 days;
@@ -47,7 +48,7 @@ contract Auction is Ownable2Step, IAuction {
 
         (bool success,) = msg.sender.call{value: PRIZE}("");
         if (!success) revert ErrorsLib.OperationFailed();
-        emit PrizeClaimed(PRIZE, msg.sender);
+        emit EventsLib.PrizeClaimed(msg.sender, PRIZE);
     }
 
     
@@ -61,7 +62,7 @@ contract Auction is Ownable2Step, IAuction {
 
             (bool success, ) = msg.sender.call{value: amountToSend}("");
             if (!success) revert ErrorsLib.OperationFailed();
-            emit BidWithdrawn(amountToSend, msg.sender);
+            emit EventsLib.BidWithdrawn(msg.sender, amountToSend);
         }
     }
 
@@ -75,7 +76,7 @@ contract Auction is Ownable2Step, IAuction {
 
             (bool success, ) = msg.sender.call{value: amountToSend}("");
             if (!success) revert ErrorsLib.OperationFailed();
-            emit BidCancelled(amountToSend, msg.sender);
+            emit EventsLib.BidCancelled(msg.sender, amountToSend);
         }
     }
 
