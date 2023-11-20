@@ -5,22 +5,19 @@ import {Ownable, Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step
 import {IAuction} from "./interfaces/IAuction.sol";
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
+import {ConstantsLib} from "./libraries/ConstantsLib.sol";
 
 contract Auction is Ownable2Step, IAuction {
-    uint256 private constant AUCTION_MIN_DURATION = 1 days;
-    uint256 private constant PRIZE_CLAIMED = 1;
-    uint256 private constant PRIZE_IS_NOT_CLAIMED = 2;
-    uint256 private constant PRIZE = 10 ether;
     uint256 private immutable AUCTION_START_TIME;
     uint256 private immutable AUCTION_END_TIME;
 
     uint256 currentMaximumBidAmount;
 
     mapping(address bidder => BidInfo) public bids;
-    uint256 claimed = PRIZE_IS_NOT_CLAIMED;
+    uint256 claimed = ConstantsLib.PRIZE_IS_NOT_CLAIMED;
 
     constructor(uint256 auctionStartTime, uint256 auctionDuration) Ownable(msg.sender) payable {
-        if (auctionDuration < AUCTION_MIN_DURATION) revert ErrorsLib.InvalidAuctionDuration();
+        if (auctionDuration < ConstantsLib.AUCTION_MIN_DURATION) revert ErrorsLib.InvalidAuctionDuration();
         if (auctionStartTime < block.timestamp) revert ErrorsLib.InvalidStartTime();
         AUCTION_START_TIME = auctionStartTime;
         AUCTION_END_TIME = AUCTION_START_TIME + auctionDuration;
@@ -38,17 +35,17 @@ contract Auction is Ownable2Step, IAuction {
 
     function claimPrize() external {
         if (block.timestamp <= AUCTION_END_TIME) revert ErrorsLib.AuctionStillActive();
-        if (claimed == PRIZE_CLAIMED) revert ErrorsLib.PrizeAlreadyClaimed();
-        claimed = PRIZE_CLAIMED;
+        if (claimed == ConstantsLib.PRIZE_CLAIMED) revert ErrorsLib.PrizeAlreadyClaimed();
+        claimed = ConstantsLib.PRIZE_CLAIMED;
         BidInfo memory bidInfo = bids[msg.sender];
         if (bidInfo.bid != currentMaximumBidAmount) revert ErrorsLib.NotAllowedToClaim();
         bidInfo.status = false;
 
         bids[msg.sender] = bidInfo;
 
-        (bool success,) = msg.sender.call{value: PRIZE}("");
+        (bool success,) = msg.sender.call{value: ConstantsLib.PRIZE}("");
         if (!success) revert ErrorsLib.OperationFailed();
-        emit EventsLib.PrizeClaimed(msg.sender, PRIZE);
+        emit EventsLib.PrizeClaimed(msg.sender, ConstantsLib.PRIZE);
     }
 
     
