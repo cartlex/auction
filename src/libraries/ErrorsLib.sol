@@ -35,4 +35,10 @@ library ErrorsLib {
 
     /// @notice Thrown when return value of `call` is equal to false.
     error OperationFailed();
+
+    /// @notice Thrown when zero address is provided.
+    error ZeroAddress();
+
+    /// @notice Thrown when caller is not RandomizerVRF contract.
+    error NotRandomizerVRF();
 }

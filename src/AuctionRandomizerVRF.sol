@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import "./interfaces/IAuction.sol";
+import {IAuction} from "./interfaces/IAuction.sol";
 
 contract AuctionRandomizerVRF is VRFConsumerBaseV2 {
-    error InvalidSender();
+    error NotAnAuction();
 
     event NumberPicked(uint256 indexed requestId, address indexed player);
     event NumberLanded(uint256 indexed requestId, uint256 indexed randomNumber);
@@ -24,6 +24,11 @@ contract AuctionRandomizerVRF is VRFConsumerBaseV2 {
 
     mapping(uint256 => address) private players;
     mapping(address => uint256) private results;  
+
+    modifier onlyAuction() {
+        if (msg.sender != address(auction)) revert NotAnAuction();
+        _;
+    }
 
     constructor(
         uint64 _subscriptionId,
@@ -44,8 +49,7 @@ contract AuctionRandomizerVRF is VRFConsumerBaseV2 {
         numWords = _numWords;
     }
 
-    function pickNumber(address player) external returns (uint256 requestId) {
-        if (msg.sender != address(auction)) revert InvalidSender();
+    function pickNumber(address player) external onlyAuction returns (uint256 requestId) {
 
         requestId = COORDINATOR.requestRandomWords(
             keyHash,
@@ -63,7 +67,11 @@ contract AuctionRandomizerVRF is VRFConsumerBaseV2 {
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
         uint256 randomNumber = randomWords[0] % 100 + 1; 
 
+        address player = players[requestId];
+
         results[players[requestId]] = randomNumber;
+
+        auction.setRandomValue(player, randomNumber);
 
         emit NumberLanded(requestId, randomNumber);
     }

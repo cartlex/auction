@@ -5,9 +5,16 @@ libs = ["lib"]
 
 solc = "0.8.20"
 
+
+
 remappings = [
     "forge-std=lib/forge-std/src/",
 	"@openzeppelin=lib/openzeppelin-contracts",
     "@chainlink=lib/chainlink/"
 ]
+
+[rpc_endpoints]
+mainnet = "https://eth-mainnet.g.alchemy.com/v2/4k6LdCig5kQ_aReUY-UWM6OSvIO0Il3s" 
+base = "https://base-mainnet.g.alchemy.com/v2/frZpHtv385VedSvKK-TN4OtEDjg1AIwu"
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

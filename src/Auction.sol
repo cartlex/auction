@@ -6,12 +6,14 @@ import {IAuction} from "./interfaces/IAuction.sol";
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
 import {ConstantsLib} from "./libraries/ConstantsLib.sol";
+import {AuctionRandomizerVRF} from "./AuctionRandomizerVRF.sol";
 
 /// @title Auction contract
 /// @author cartlex
 /// @custom:contact cartlexeth@gmail.com
 /// @notice An auction where you can do bid and take a chance to win a prize in ETH.
 contract Auction is Ownable2Step, IAuction {
+    AuctionRandomizerVRF public auctionRandomizerVRF;
     uint256 private immutable AUCTION_START_TIME;
     uint256 private immutable AUCTION_END_TIME;
 
@@ -21,11 +23,19 @@ contract Auction is Ownable2Step, IAuction {
     
     uint256 claimed = ConstantsLib.PRIZE_IS_NOT_CLAIMED;
 
-    constructor(uint256 auctionStartTime, uint256 auctionDuration) Ownable(msg.sender) payable {
+    modifier onlyRandomizerVRF() {
+        if(msg.sender != address(auctionRandomizerVRF)) revert ErrorsLib.NotRandomizerVRF();
+        _;
+    }
+
+    constructor(uint256 auctionStartTime, uint256 auctionDuration, address _auctionRandomizerVRF) Ownable(msg.sender) payable {
         if (auctionDuration < ConstantsLib.AUCTION_MIN_DURATION) revert ErrorsLib.InvalidAuctionDuration();
         if (auctionStartTime < block.timestamp) revert ErrorsLib.InvalidStartTime();
+        if (_auctionRandomizerVRF == address(0)) revert ErrorsLib.ZeroAddress();
+        
         AUCTION_START_TIME = auctionStartTime;
         AUCTION_END_TIME = AUCTION_START_TIME + auctionDuration;
+        auctionRandomizerVRF = AuctionRandomizerVRF(_auctionRandomizerVRF);
     }
 
     function participate() external payable {
@@ -34,8 +44,16 @@ contract Auction is Ownable2Step, IAuction {
         }
 
         if (msg.value <= currentMaximumBidAmount) revert ErrorsLib.InvalidBidAmount();
-        
-        bids[msg.sender] = BidInfo({bid: msg.value, bidder: msg.sender, status: true});
+        bids[msg.sender].bid = msg.value;
+        bids[msg.sender].bidder = msg.sender;
+        bids[msg.sender].status = true;
+
+        auctionRandomizerVRF.pickNumber(msg.sender);
+    }
+
+    function setRandomValue(address bidder, uint256 randomValue) external onlyRandomizerVRF {
+        bytes32 randomHash = keccak256(abi.encode(randomValue));
+        bids[bidder].randomValue = randomHash;
     }
 
     function claimPrize() external {
